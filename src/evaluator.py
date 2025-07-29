@@ -1,52 +1,45 @@
-# Contenido para src/evaluator.py
+# src/evaluator.py
 
-def evaluate_prediction(prediction: list, result: list) -> dict:
+def evaluar_jugada(jugada_realizada, numeros_sorteados_reales, config):
     """
-    Compara una predicción con el resultado real de un sorteo.
+    Evalúa una jugada contra los números de un sorteo real.
 
     Args:
-        prediction (list): La lista de números que se predijo.
-        result (list): La lista de números que realmente salieron.
+        jugada_realizada (dict): El diccionario de la jugada generada.
+            Ej: {"fecha": "2025-07-28", "grupos_jugados": [...], "numeros_jugados": [...]}
+        numeros_sorteados_reales (list): La lista de números que salieron en el sorteo.
+            Ej: [3, 8, 11, 14, 15]
+        config (dict): El diccionario de configuración con costos y premios.
 
     Returns:
-        dict: Un diccionario con el número de aciertos y la lista de números acertados.
+        dict: Un diccionario con el resultado completo de la evaluación.
     """
-    if not isinstance(prediction, list) or not isinstance(result, list):
-        return {"hits": 0, "matched_numbers": []}
-        
+    numeros_jugados = jugada_realizada["numeros_jugados"]
+    
+    # --- CORRECCIÓN CLAVE ---
+    # Ya no se asume que el segundo argumento es un diccionario.
+    # Se usa directamente como la lista de números sorteados.
+    
     # Usamos la intersección de conjuntos para encontrar los aciertos de forma eficiente
-    predicted_numbers = set(prediction)
-    result_numbers = set(result)
+    aciertos = list(set(numeros_jugados) & set(numeros_sorteados_reales))
+    cantidad_aciertos = len(aciertos)
     
-    matched_numbers = list(predicted_numbers.intersection(result_numbers))
-    hits = len(matched_numbers)
+    costo_por_numero = config["costo_por_numero"]
+    premio_por_acierto = config["premio_por_acierto"]
     
+    costo_total = len(numeros_jugados) * costo_por_numero
+    premio_total = cantidad_aciertos * premio_por_acierto
+    ganancia = premio_total - costo_total
+    
+    # Devolvemos un diccionario completo con todos los datos relevantes
     return {
-        "hits": hits,
-        "matched_numbers": sorted(matched_numbers)
+        "fecha": jugada_realizada["fecha"],
+        "grupos_jugados": jugada_realizada["grupos_jugados"],
+        "numeros_jugados": numeros_jugados,
+        "numeros_sorteados": numeros_sorteados_reales,
+        "cantidad_aciertos": cantidad_aciertos,
+        "aciertos": sorted(aciertos),
+        "costo": costo_total,
+        "premio": premio_total,
+        "ganancia": ganancia
     }
-
-# --- Bloque de Prueba ---
-if __name__ == '__main__':
-    print("⚙️  Ejecutando prueba del módulo evaluator...")
-    
-    # Caso de prueba 1: 2 aciertos
-    test_prediction = [5, 9, 12, 18, 22]
-    test_result = [3, 9, 15, 18, 25]
-    evaluation = evaluate_prediction(test_prediction, test_result)
-    print(f"\nCaso 1: Predicción {test_prediction}, Resultado {test_result}")
-    print(f"   -> Resultado Evaluación: {evaluation}")
-    assert evaluation['hits'] == 2
-    assert evaluation['matched_numbers'] == [9, 18]
-    print("✅ Prueba 1 superada.")
-
-    # Caso de prueba 2: 0 aciertos
-    test_prediction_2 = [1, 2, 3, 4, 5]
-    test_result_2 = [10, 11, 12, 13, 14]
-    evaluation_2 = evaluate_prediction(test_prediction_2, test_result_2)
-    print(f"\nCaso 2: Predicción {test_prediction_2}, Resultado {test_result_2}")
-    print(f"   -> Resultado Evaluación: {evaluation_2}")
-    assert evaluation_2['hits'] == 0
-    print("✅ Prueba 2 superada.")
-    
-    print("\nTodas las pruebas del evaluador superadas.")
