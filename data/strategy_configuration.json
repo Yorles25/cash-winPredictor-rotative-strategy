@@ -1,18 +1,25 @@
 {
-  "grupos": {
-    "A": [1, 2, 3],
-    "B": [4, 5, 6],
-    "C": [7, 8, 9],
-    "D": [10, 11, 12],
-    "E": [13, 14, 15]
+  "group_definitions": {
+    "Grupos de 5 (A, B, C)": {
+      "A": [1, 2, 3, 4, 5],
+      "B": [6, 7, 8, 9, 10],
+      "C": [11, 12, 13, 14, 15]
+    },
+    "Grupos de 3 (A, B, C, D, E)": {
+      "A": [1, 2, 3],
+      "B": [4, 5, 6],
+      "C": [7, 8, 9],
+      "D": [10, 11, 12],
+      "E": [13, 14, 15]
+    }
   },
-  "rotacion": [
-    ["A", "C", "D"],
-    ["B", "D", "E"],
-    ["C", "E", "A"],
-    ["D", "A", "B"],
-    ["E", "B", "C"]
-  ],
   "costo_por_numero": 1,
-  "premio_por_acierto": 5
+  "premio_por_acierto": 5,
+  "franjas": [
+    "Morning",
+    "Matinee",
+    "Afternoon",
+    "Evening",
+    "LateNight"
+  ]
 }

@@ -1,45 +1,44 @@
-# src/evaluator.py
+def evaluar_dia_completo(predicciones_dia, resultados_reales_dia, config, grupos_activos):
+    # NOTA: Ahora recibe 'grupos_activos'
+    costo_por_numero = config.get('costo_por_numero', 1)
+    premio_por_acierto = config.get('premio_por_acierto', 5)
+    
+    resultados_franjas = []
+    total_aciertos_dia = 0
+    total_premio_dia = 0
+    total_costo_dia = 0
 
-def evaluar_jugada(jugada_realizada, numeros_sorteados_reales, config):
-    """
-    Evalúa una jugada contra los números de un sorteo real.
+    for franja, grupo_predicho in predicciones_dia.items():
+        if franja not in resultados_reales_dia:
+            continue
 
-    Args:
-        jugada_realizada (dict): El diccionario de la jugada generada.
-            Ej: {"fecha": "2025-07-28", "grupos_jugados": [...], "numeros_jugados": [...]}
-        numeros_sorteados_reales (list): La lista de números que salieron en el sorteo.
-            Ej: [3, 8, 11, 14, 15]
-        config (dict): El diccionario de configuración con costos y premios.
+        numero_real = resultados_reales_dia[franja]
+        numeros_jugados = grupos_activos.get(grupo_predicho, [])
+        
+        acerto = numero_real in numeros_jugados
+        cantidad_aciertos = 1 if acerto else 0
+        
+        costo_franja = len(numeros_jugados) * costo_por_numero
+        premio_franja = cantidad_aciertos * premio_por_acierto
+        ganancia_franja = premio_franja - costo_franja
+        
+        total_aciertos_dia += cantidad_aciertos
+        total_premio_dia += premio_franja
+        total_costo_dia += costo_franja
 
-    Returns:
-        dict: Un diccionario con el resultado completo de la evaluación.
-    """
-    numeros_jugados = jugada_realizada["numeros_jugados"]
+        resultados_franjas.append({
+            "franja": franja,
+            "grupo_predicho": grupo_predicho,
+            "numeros_jugados": numeros_jugados,
+            "numero_real": numero_real,
+            "resultado": "✅ ACIERTO" if acerto else "❌ FALLO",
+            "ganancia_franja": ganancia_franja
+        })
+
+    ganancia_neta_dia = total_premio_dia - total_costo_dia
     
-    # --- CORRECCIÓN CLAVE ---
-    # Ya no se asume que el segundo argumento es un diccionario.
-    # Se usa directamente como la lista de números sorteados.
-    
-    # Usamos la intersección de conjuntos para encontrar los aciertos de forma eficiente
-    aciertos = list(set(numeros_jugados) & set(numeros_sorteados_reales))
-    cantidad_aciertos = len(aciertos)
-    
-    costo_por_numero = config["costo_por_numero"]
-    premio_por_acierto = config["premio_por_acierto"]
-    
-    costo_total = len(numeros_jugados) * costo_por_numero
-    premio_total = cantidad_aciertos * premio_por_acierto
-    ganancia = premio_total - costo_total
-    
-    # Devolvemos un diccionario completo con todos los datos relevantes
     return {
-        "fecha": jugada_realizada["fecha"],
-        "grupos_jugados": jugada_realizada["grupos_jugados"],
-        "numeros_jugados": numeros_jugados,
-        "numeros_sorteados": numeros_sorteados_reales,
-        "cantidad_aciertos": cantidad_aciertos,
-        "aciertos": sorted(aciertos),
-        "costo": costo_total,
-        "premio": premio_total,
-        "ganancia": ganancia
+        "detalle_franjas": resultados_franjas,
+        "total_aciertos_dia": total_aciertos_dia,
+        "ganancia_neta_dia": ganancia_neta_dia
     }
