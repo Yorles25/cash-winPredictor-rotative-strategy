@@ -1,44 +1,29 @@
-def evaluar_dia_completo(predicciones_dia, resultados_reales_dia, config, grupos_activos):
-    # NOTA: Ahora recibe 'grupos_activos'
-    costo_por_numero = config.get('costo_por_numero', 1)
-    premio_por_acierto = config.get('premio_por_acierto', 5)
-    
-    resultados_franjas = []
-    total_aciertos_dia = 0
-    total_premio_dia = 0
-    total_costo_dia = 0
+# src/evaluator.py
 
-    for franja, grupo_predicho in predicciones_dia.items():
-        if franja not in resultados_reales_dia:
+def evaluar_dia_completo_con_motor_financiero(financial_engine, ranking_predicciones_dia, resultados_reales_dia):
+    """
+    Delega la evaluación financiera de cada franja al motor financiero.
+    """
+    resultados_franjas = []
+    
+    for franja, ranking_predicho in ranking_predicciones_dia.items():
+        if franja not in resultados_reales_dia or resultados_reales_dia[franja] is None:
             continue
 
         numero_real = resultados_reales_dia[franja]
-        numeros_jugados = grupos_activos.get(grupo_predicho, [])
         
-        acerto = numero_real in numeros_jugados
-        cantidad_aciertos = 1 if acerto else 0
+        # Llama al motor financiero para hacer todo el trabajo pesado
+        resultado_franja = financial_engine.calculate_franja_finance(franja, ranking_predicho, numero_real)
         
-        costo_franja = len(numeros_jugados) * costo_por_numero
-        premio_franja = cantidad_aciertos * premio_por_acierto
-        ganancia_franja = premio_franja - costo_franja
-        
-        total_aciertos_dia += cantidad_aciertos
-        total_premio_dia += premio_franja
-        total_costo_dia += costo_franja
-
+        # Prepara los datos para la interfaz
         resultados_franjas.append({
             "franja": franja,
-            "grupo_predicho": grupo_predicho,
-            "numeros_jugados": numeros_jugados,
             "numero_real": numero_real,
-            "resultado": "✅ ACIERTO" if acerto else "❌ FALLO",
-            "ganancia_franja": ganancia_franja
+            "grupo_real": resultado_franja['grupo_real'],
+            "ranking_predicho": ranking_predicho,
+            "ubicacion_acierto": resultado_franja['ubicacion_acierto'],
+            "financials": resultado_franja['financials'],
+            "ganancia_neta_franja": resultado_franja['total_ganancia_franja']
         })
-
-    ganancia_neta_dia = total_premio_dia - total_costo_dia
-    
-    return {
-        "detalle_franjas": resultados_franjas,
-        "total_aciertos_dia": total_aciertos_dia,
-        "ganancia_neta_dia": ganancia_neta_dia
-    }
+        
+    return resultados_franjas
